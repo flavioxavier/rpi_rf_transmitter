@@ -1,5 +1,5 @@
 {
-  "domain": "rpi_rf_transmitter",
+  "domain": "rpi_rf",
   "name": "Raspberry Pi RF GPIO",
   "codeowners": [ "@thecode", "@tomer-w" ],
   "documentation": "https://github.com/flavioxavier/rpi_rf_transmitter",

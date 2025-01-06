@@ -36,55 +36,6 @@ Key | Required | Default | Type | Description
 
 ## Button
 
-The `rpi_rf_transmitter` binary sensor platform allows you to read sensor values of the GPIOs of your [Raspberry Pi](https://www.raspberrypi.org/).
-
-### Configuration
-
-To use your Raspberry Pi's GPIO in your installation, add the following to your `configuration.yaml` file:
-
-```yaml
-# Basic configuration.yaml entry
-binary_sensor:
-  - platform: rpi_rf_transmitter
-    sensors:
-      - port: 11
-        name: "PIR Office"
-      - port: 12
-        name: "PIR Bedroom"
-```
-
-```yaml
-# Full configuration.yaml entry
-binary_sensor:
-  - platform: rpi_rf_transmitter
-    sensors:
-      - port: 11
-        name: "PIR Office"
-        unique_id: "pir_office_sensor_port_11"
-        bouncetime: 80
-        invert_logic: true
-        pull_mode: "DOWN"
-      - port: 12
-        name: "PIR Bedroom"
-        unique_id: "pir_bedroom_sensor_port_12"
-```
-
-### Options
-
-| Key            | Required | Default               | Type    | Description                                                                                                 |
-| -------------- | -------- | --------------------- | --------|------------------------------------------------------------------------------------------------------------ |
-| `sensors`      | yes      |                       | list    | List of sensor IO ports ([BCM mode pin numbers](https://pinout.xyz/resources/raspberry-pi-pinout.png))      |
-| `name`         | yes      |                       | string  | The name for the binary sensor entity                                                                       |
-| `port`         | yes      |                       | integer | the GPIO port to be used                                                                                    |
-| `unique_id`    | no       |                       | string  | An ID that uniquely identifies the sensor. Set this to a unique value to allow customization through the UI |
-| `bouncetime`   | no       | `50`                  | integer | The time in milliseconds for port debouncing                                                                |
-| `invert_logic` | no       | `false` (ACTIVE HIGH) | boolean | If `true`, inverts the output logic to ACTIVE LOW                                                           |
-| `pull_mode`    | no       | `UP`                  | string  | control bias setting of GPIO, used to define the electrical state of a GPIO line when not actively driven; `UP` set weak pull-up resistor on the line, ensuring that the line is pulled to a high level (3.3V or 5V) when not actively driven; `DOWN` sets weak pull-down resistor to pull to low level (0V), `DISABLED` remains floating, `AS_IS` not changed                 |
-
-For more details about the GPIO layout, visit the Wikipedia [article](https://en.wikipedia.org/wiki/Raspberry_Pi#General_purpose_input-output_(GPIO)_connector) about the Raspberry Pi.
-
-
-## Switch
 
 The `rpi_rf_transmitter` switch platform allows you to control the GPIOs of your [Raspberry Pi](https://www.raspberrypi.org/).
 

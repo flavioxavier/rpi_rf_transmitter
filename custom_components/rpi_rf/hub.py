@@ -5,29 +5,16 @@ from . import DOMAIN
 import logging
 _LOGGER = logging.getLogger(__name__)
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import EVENT_HOMEASSISTANT_STOP, EVENT_HOMEASSISTANT_START
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.core import HomeAssistant # type: ignore
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP, EVENT_HOMEASSISTANT_START # type: ignore
+from homeassistant.exceptions import HomeAssistantError # type: ignore
 
 import time
-from typing import Dict
-from datetime import timedelta
-import gpiod
+import gpiod # type: ignore
 
-from gpiod.line import Direction, Value, Bias, Drive, Edge, Clock
+from gpiod.line import Direction, Value # type: ignore
 EventType = gpiod.EdgeEvent.Type
 
-BIAS = { 
-    "UP": Bias.PULL_UP, 
-    "DOWN": Bias.PULL_DOWN,
-    "DISABLED": Bias.DISABLED,
-    "AS_IS": Bias.AS_IS,
-}
-DRIVE = { 
-    "OPEN_DRAIN": Drive.OPEN_DRAIN, 
-    "OPEN_SOURCE": Drive.OPEN_SOURCE, 
-    "PUSH_PULL": Drive.PUSH_PULL, 
-} 
 
 class Hub:
 
@@ -91,32 +78,6 @@ class Hub:
     def hub_id(self) -> str:
         """ID for hub"""
         return self._id
-
-    def add_switch(self, port, active_low, bias, drive_mode, init_state) -> gpiod.LineRequest:
-        _LOGGER.debug(f"add_switch - port: {port}, active_low: {active_low}, bias: {bias}, drive_mode: {drive_mode}, init_state: {init_state}")
-        self.verify_online()
-        self.verify_port_ready(port)
-
-        line_request = self._chip.request_lines(
-            consumer=DOMAIN,
-            config={port: gpiod.LineSettings(
-            direction = Direction.OUTPUT,
-            bias = BIAS[bias],
-            drive = DRIVE[drive_mode],
-            active_low = active_low,
-            output_value = Value.ACTIVE if init_state is not None and init_state else Value.INACTIVE)})
-        _LOGGER.debug(f"add_switch line_request: {line_request}")
-        return line_request
-
-    def turn_on(self, line, port) -> None:
-        _LOGGER.debug(f"in turn_on {port}")
-        self.verify_online()
-        line.set_value(port, Value.ACTIVE)
-
-    def turn_off(self, line, port) -> None:
-        _LOGGER.debug(f"in turn_off {port}")
-        self.verify_online()
-        line.set_value(port, Value.INACTIVE)
 
     def add_button(self, data, repeat) -> gpiod.LineRequest:
         _LOGGER.debug(f"add_button - code: {data}, repeat: {repeat}")
