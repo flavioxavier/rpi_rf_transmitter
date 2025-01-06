@@ -3,16 +3,16 @@
 import logging
 _LOGGER = logging.getLogger(__name__)
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.core import HomeAssistant # type: ignore
+from homeassistant.helpers.typing import ConfigType # type: ignore
 
 from .const import DOMAIN
 from .hub import Hub
 
-import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
+import voluptuous as vol # type: ignore
+import homeassistant.helpers.config_validation as cv # type: ignore
 
-from homeassistant.const import CONF_PATH
+from homeassistant.const import CONF_PATH # type: ignore
 
 CONFIG_SCHEMA = vol.Schema(
     {

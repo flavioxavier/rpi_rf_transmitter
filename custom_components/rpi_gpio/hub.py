@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, EVENT_HOMEASSISTANT_START
 from homeassistant.exceptions import HomeAssistantError
 
+import time
 from typing import Dict
 from datetime import timedelta
 import gpiod
@@ -30,7 +31,7 @@ DRIVE = {
 
 class Hub:
 
-    def __init__(self, hass: HomeAssistant, path: str) -> None:
+    def __init__(self, hass: HomeAssistant, path: str, gpio: int) -> None:
         """GPIOD Hub"""
 
         self._path = path
@@ -39,6 +40,8 @@ class Hub:
         self._id = path
         self._hass = hass
         self._online = False
+        self._port = gpio
+
 
         if path:
             # use config
@@ -56,6 +59,10 @@ class Hub:
                     self._online = True
                     self._path = path
                     break
+
+        if not gpio:
+            self._port = 17
+
 
         self.verify_online()
         _LOGGER.debug(f"using gpio_device: {self._path}")
@@ -79,13 +86,6 @@ class Hub:
 
         _LOGGER.debug(f"verify_gpiochip gpiodevice: {path} has pinctrl")
         return True
-
-    def verify_port_ready(self, port: int):
-        info = self._chip.get_line_info(port)
-        _LOGGER.debug(f"original port info: {info}")
-        if info.used and info.consumer != DOMAIN:
-            _LOGGER.error(f"Port {port} already in use by {info.consumer}")
-            raise HomeAssistantError(f"Port {port} already in use by {info.consumer}")
 
     @property
     def hub_id(self) -> str:
@@ -118,29 +118,41 @@ class Hub:
         self.verify_online()
         line.set_value(port, Value.INACTIVE)
 
-    def add_sensor(self, port, active_low, bias, debounce) -> gpiod.LineRequest:
-        _LOGGER.debug(f"add_sensor - port: {port}, active_low: {active_low}, bias: {bias}, debounce: {debounce}")
+    def add_button(self, data, repeat) -> gpiod.LineRequest:
+        _LOGGER.debug(f"add_button - code: {data}, repeat: {repeat}")
         self.verify_online()
-        self.verify_port_ready(port)
+        port = self._port
 
         line_request = self._chip.request_lines(
             consumer=DOMAIN,
             config={port: gpiod.LineSettings(
-                direction = Direction.INPUT,
-                edge_detection = Edge.BOTH,
-                bias = BIAS[bias],
-                active_low = active_low,
-                debounce_period = timedelta(milliseconds=debounce),
-                event_clock = Clock.REALTIME)})
+            direction = Direction.OUTPUT)})
+        _LOGGER.debug(f"add_switch line_request: {line_request}")
+        return line_request
+    
+    def press(self, line, data, repeat) -> None:
+        port = self._port
+        _LOGGER.debug(f"send value {data} to {port} {repeat} times")
+        self.verify_online()
+        self.transmit_raw(line, data, repeat)
 
-        current_is_on = True if line_request.get_value(port) == Value.ACTIVE else False
-        _LOGGER.debug(f"add_sensor line_request: {line_request}. current state: {current_is_on}")
-        return line_request, current_is_on
+    def transmit_raw(self, line, data , repeat,):
+        port = self._port
+        for _ in range(repeat):
+            for signal in data:
+                self.transmit_signal(line, signal)
+            line.set_value(port, Value.INACTIVE)
+            time.sleep(0.01) # change to config option
 
-    def add_cover(self, relay_port, relay_active_low, relay_bias, relay_drive, 
-                  state_port, state_bias, state_active_low):
-        _LOGGER.debug(f"add_cover - relay_port: {relay_port}, state_port: {state_port}")
-        relay_line = self.add_switch(relay_port, relay_active_low, relay_bias, relay_drive, False)
-        state_line, current_is_on = self.add_sensor(state_port, state_active_low, state_bias, 50)
-        return relay_line, state_line, current_is_on
 
+    def transmit_signal(self, line, data):
+        port = self._port
+        signal = int(data)
+        delay = abs(signal) / 1000000.0
+        value = Value.ACTIVE if signal > 0 else Value.INACTIVE
+
+        line.set_value(port, value)
+        
+        time.sleep(delay)
+
+    

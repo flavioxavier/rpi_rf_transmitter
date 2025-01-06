@@ -86,7 +86,6 @@ class GPIODSwitch(SwitchEntity, RestoreEntity):
         self._drive_mode = drive
         self._persistent = persistent
         self._line = None
-        self._hub.verify_port_ready(self._port)
         
     async def async_added_to_hass(self) -> None:
         """Call when the switch is added to hass."""
