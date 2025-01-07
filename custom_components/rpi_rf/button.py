@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
 
-#from . import DOMAIN
+from . import DOMAIN, CONF_REMOTES
 
 import logging
 _LOGGER = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA # type: igno
 from homeassistant.components.button import ButtonEntity # type: ignore
 from homeassistant.const import CONF_REPEAT, CONF_NAME, CONF_UNIQUE_ID, CONF_SERVICE_DATA # type: ignore
 from homeassistant.helpers.restore_state import RestoreEntity # type: ignore
-from .const import DOMAIN, CONF_REMOTES
+
 
 
 import homeassistant.helpers.config_validation as cv # type: ignore
@@ -39,12 +39,12 @@ async def async_setup_platform(
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None) -> None:
 
-    _LOGGER.debug(f"setup_platform: {config}")
+    _LOGGER.debug(f"setup_platform: {config} rf remotes")
     hub = hass.data[DOMAIN]
     if not hub._online:
         _LOGGER.error("hub not online, bailing out")
         
-    _LOGGER.error(f"config: {config.get(DOMAIN)}")
+    _LOGGER.debug(f"config: {config.get(DOMAIN)}")
     buttons = []
     for button in config.get(DOMAIN).get(CONF_REMOTES):
         buttons.append(
