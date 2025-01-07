@@ -90,7 +90,6 @@ class Hub:
             consumer=DOMAIN,
             config={port: gpiod.LineSettings(direction = Direction.OUTPUT, output_value=Value.INACTIVE)}
         )
-        _LOGGER.debug(f"line_request: {line}")
 
         for _ in range(repeat):
             for signal in data:
@@ -106,7 +105,6 @@ class Hub:
         signal = int(data)
         delay = abs(signal) / 1000000.0
         value = Value.ACTIVE if signal > 0 else Value.INACTIVE
-        _LOGGER.debug(f"set value on  gpio{port} to {value} for {delay} seconds")
         line.set_value(port, value)
         
         sleep(delay)
