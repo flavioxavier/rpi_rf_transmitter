@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
 
-from . import DOMAIN
+#from . import DOMAIN
 
 import logging
 _LOGGER = logging.getLogger(__name__)
@@ -11,9 +11,9 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType # type: i
 from homeassistant.helpers.entity_platform import AddEntitiesCallback # type: ignore
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA # type: ignore
 from homeassistant.components.button import ButtonEntity # type: ignore
-from homeassistant.const import CONF_REPEAT, CONF_BUTTONS, CONF_NAME, CONF_UNIQUE_ID, CONF_SERVICE_DATA # type: ignore
+from homeassistant.const import CONF_REPEAT, CONF_NAME, CONF_UNIQUE_ID, CONF_SERVICE_DATA # type: ignore
 from homeassistant.helpers.restore_state import RestoreEntity # type: ignore
-from .hub import BIAS, DRIVE
+from .const import DOMAIN, CONF_REMOTES
 
 
 import homeassistant.helpers.config_validation as cv # type: ignore
@@ -21,10 +21,10 @@ import voluptuous as vol # type: ignore
 
 PLATFORM_SCHEMA = vol.All(
     PLATFORM_SCHEMA.extend({
-        vol.Exclusive(CONF_BUTTONS, CONF_BUTTONS): vol.All(
+        vol.Exclusive(CONF_REMOTES, CONF_REMOTES): vol.All(
             cv.ensure_list, [{
                 vol.Required(CONF_NAME): cv.string,
-                vol.Required(CONF_SERVICE_DATA): cv.ensure_list[int],
+                vol.Required(CONF_SERVICE_DATA): cv.ensure_list(int),
                 vol.Required(CONF_REPEAT): cv.positive_int,
                 vol.Optional(CONF_UNIQUE_ID): cv.string
             }]
@@ -45,19 +45,19 @@ async def async_setup_platform(
         _LOGGER.error("hub not online, bailing out")
         
     _LOGGER.error(f"config: {config.get(DOMAIN)}")
-    # buttons = []
-    # for button in config.get(CONF_BUTTONS):
-    #     buttons.append(
-    #         GPIODButton(
-    #             hub,
-    #             button[CONF_NAME],
-    #             button.get(CONF_SERVICE_DATA),
-    #             button.get(CONF_REPEAT),
-    #             button.get(CONF_UNIQUE_ID) or f"{DOMAIN}_{button[CONF_NAME].lower().replace(' ', '_')}"
-    #         )
-    #     )
+    buttons = []
+    for button in config.get(DOMAIN).get(CONF_REMOTES):
+        buttons.append(
+            GPIODButton(
+                hub,
+                button[CONF_NAME],
+                button.get(CONF_SERVICE_DATA),
+                button.get(CONF_REPEAT),
+                button.get(CONF_UNIQUE_ID) or f"{DOMAIN}_{button[CONF_NAME].lower().replace(' ', '_')}"
+            )
+        )
 
-    # async_add_entities(buttons)
+    async_add_entities(buttons)
 
 
 class GPIODButton(ButtonEntity, RestoreEntity):

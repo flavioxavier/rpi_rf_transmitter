@@ -22,7 +22,7 @@ CONFIG_SCHEMA = vol.Schema(
             vol.Exclusive(CONF_REMOTES, CONF_REMOTES): vol.All(
                 cv.ensure_list, [{
                     vol.Required(CONF_NAME): cv.string,
-                    vol.Required(CONF_SERVICE_DATA): cv.ensure_list(cv.positive_int),
+                    vol.Required(CONF_SERVICE_DATA): cv.ensure_list(int),
                     vol.Required(CONF_REPEAT): cv.positive_int,
                     vol.Optional(CONF_UNIQUE_ID): cv.string
                 }]
@@ -30,6 +30,7 @@ CONFIG_SCHEMA = vol.Schema(
         })
     },
     extra=vol.ALLOW_EXTRA
+    #vol.Optional(CONF_LIST, default=DEFAULT_LIST): vol.All(cv.ensure_list, [cv.positive_int]),
 )
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -37,7 +38,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     version = getattr(hass.data["integrations"][DOMAIN], "version", 0)
     _LOGGER.debug(f"{DOMAIN} integration starting. Version: {version}")
     path = config.get(DOMAIN, {}).get(CONF_PATH) 
-    hub = Hub(hass, path)
+    pin = config.get(DOMAIN, {}).get(CONF_PIN) 
+    hub = Hub(hass, path, pin)
     hass.data[DOMAIN] = hub
 
     return True
