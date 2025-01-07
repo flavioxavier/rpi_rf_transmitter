@@ -18,7 +18,7 @@ EventType = gpiod.EdgeEvent.Type
 
 class Hub:
 
-    def __init__(self, hass: HomeAssistant, path: str, gpio: int) -> None:
+    def __init__(self, hass: HomeAssistant, path: str) -> None:
         """GPIOD Hub"""
 
         self._path = path
@@ -27,7 +27,7 @@ class Hub:
         self._id = path
         self._hass = hass
         self._online = False
-        self._port = gpio
+        self._port = 17
 
 
         if path:
@@ -47,10 +47,6 @@ class Hub:
                     self._path = path
                     break
 
-        if not gpio:
-            self._port = 17
-
-        _LOGGER.debug(f"using gpio{self._port}")
 
 
         self.verify_online()
