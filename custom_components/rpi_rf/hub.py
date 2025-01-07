@@ -50,6 +50,8 @@ class Hub:
         if not gpio:
             self._port = 17
 
+        _LOGGER.debug(f"using gpio{self._port}")
+
 
         self.verify_online()
         _LOGGER.debug(f"using gpio_device: {self._path}")

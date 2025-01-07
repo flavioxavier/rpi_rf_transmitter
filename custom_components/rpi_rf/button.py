@@ -43,20 +43,21 @@ async def async_setup_platform(
     hub = hass.data[DOMAIN]
     if not hub._online:
         _LOGGER.error("hub not online, bailing out")
+        
+    _LOGGER.error(f"config: {config.get(DOMAIN)}")
+    # buttons = []
+    # for button in config.get(CONF_BUTTONS):
+    #     buttons.append(
+    #         GPIODButton(
+    #             hub,
+    #             button[CONF_NAME],
+    #             button.get(CONF_SERVICE_DATA),
+    #             button.get(CONF_REPEAT),
+    #             button.get(CONF_UNIQUE_ID) or f"{DOMAIN}_{button[CONF_NAME].lower().replace(' ', '_')}"
+    #         )
+    #     )
 
-    buttons = []
-    for button in config.get(CONF_BUTTONS):
-        buttons.append(
-            GPIODButton(
-                hub,
-                button[CONF_NAME],
-                button.get(CONF_SERVICE_DATA),
-                button.get(CONF_REPEAT),
-                button.get(CONF_UNIQUE_ID) or f"{DOMAIN}_{button[CONF_NAME].lower().replace(' ', '_')}"
-            )
-        )
-
-    async_add_entities(buttons)
+    # async_add_entities(buttons)
 
 
 class GPIODButton(ButtonEntity, RestoreEntity):
