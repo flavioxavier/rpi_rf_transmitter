@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant # type: ignore
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, EVENT_HOMEASSISTANT_START # type: ignore
 from homeassistant.exceptions import HomeAssistantError # type: ignore
 
-import time
+from  time import sleep
 import gpiod # type: ignore
 
 from gpiod.line import Direction, Value # type: ignore
@@ -22,7 +22,7 @@ class Hub:
         """GPIOD Hub"""
 
         self._path = path
-        self._chip :  gpiod.Chip
+        self._chip : gpiod.Chip
         self._name = path
         self._id = path
         self._hass = hass
@@ -48,7 +48,6 @@ class Hub:
                     break
 
 
-
         self.verify_online()
         _LOGGER.debug(f"using gpio_device: {self._path}")
 
@@ -65,6 +64,7 @@ class Hub:
         _LOGGER.debug(f"verify_gpiochip: {path} is a gpiochip_device")
         self._chip = gpiod.Chip(path)
         info = self._chip.get_info()
+        _LOGGER.debug(f"{info.name} [{info.label}] ({info.num_lines} lines)")
         if not "pinctrl" in info.label:
             _LOGGER.debug(f"verify_gpiochip: {path} no pinctrl {info.label}")
             return False
@@ -77,31 +77,28 @@ class Hub:
         """ID for hub"""
         return self._id
 
-    def add_button(self, data, repeat) -> gpiod.LineRequest:
-        _LOGGER.debug(f"add_button - code: {data}, repeat: {repeat}")
-        self.verify_online()
-        port = self._port
-
-        line_request = self._chip.request_lines(
-            consumer=DOMAIN,
-            config={port: gpiod.LineSettings(
-            direction = Direction.OUTPUT)})
-        _LOGGER.debug(f"add_switch line_request: {line_request}")
-        return line_request
     
-    def press(self, line, data, repeat) -> None:
-        port = self._port
-        _LOGGER.debug(f"send value {data} to {port} {repeat} times")
+    def press(self, data, repeat) -> None:
         self.verify_online()
-        self.transmit_raw(line, data, repeat)
+        self.transmit_raw(data, repeat)
 
-    def transmit_raw(self, line, data , repeat,):
+    def transmit_raw(self, data , repeat):
         port = self._port
+        _LOGGER.debug(f"send value {data} to gpio{port} {repeat} times")
+
+        line = self._chip.request_lines(
+            consumer=DOMAIN,
+            config={port: gpiod.LineSettings(direction = Direction.OUTPUT, output_value=Value.INACTIVE)}
+        )
+        _LOGGER.debug(f"line_request: {line}")
+
         for _ in range(repeat):
             for signal in data:
                 self.transmit_signal(line, signal)
             line.set_value(port, Value.INACTIVE)
-            time.sleep(0.01) # change to config option
+            sleep(0.01) # change to config option
+        
+        line.release()
 
 
     def transmit_signal(self, line, data):
@@ -109,9 +106,9 @@ class Hub:
         signal = int(data)
         delay = abs(signal) / 1000000.0
         value = Value.ACTIVE if signal > 0 else Value.INACTIVE
-
+        _LOGGER.debug(f"set value on  gpio{port} to {value} for {delay} seconds")
         line.set_value(port, value)
         
-        time.sleep(delay)
+        sleep(delay)
 
     

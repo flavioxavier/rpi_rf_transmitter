@@ -45,10 +45,10 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 # )
 
 
-async def async_setup_platform(
+def setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
+    add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None) -> None:
 
     _LOGGER.debug(f"setup_platform: {config} rf remotes")
@@ -75,7 +75,7 @@ async def async_setup_platform(
             )
         )
 
-    async_add_entities(buttons)
+    add_entities(buttons)
 
 
 class GPIODButton(ButtonEntity, RestoreEntity):
@@ -88,21 +88,7 @@ class GPIODButton(ButtonEntity, RestoreEntity):
         self._attr_unique_id = unique_id
         self._data = data
         self._repeat = repeat
-        self._line = None
-        
-    async def async_added_to_hass(self) -> None:
-        """Call when the button is added to hass."""
-        await super().async_added_to_hass()
-        state = await self.async_get_last_state()
-        self._line = self._hub.add_button(self._data, self._repeat)
 
-    async def async_will_remove_from_hass(self) -> None:
-        await super().async_will_remove_from_hass()
-        _LOGGER.debug(f"GPIODButton async_will_remove_from_hass")
-        if self._line:
-            self._line.release()
-
-    async def async_press(self, **kwargs: Any) -> None:
-        self._hub.press(self._line, self._data, self._repeat)
-        self.async_write_ha_state()
+    def press(self, **kwargs: Any) -> None:
+        self._hub.press(self._data, self._repeat)
 
